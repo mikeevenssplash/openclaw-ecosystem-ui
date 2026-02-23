@@ -4,13 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "vite build",
+    "start": "npx serve -s dist -l $PORT",
+    "dev": "vite",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
+    "serve": "^14.2.5",
     "@tailwindcss/vite": "^4.2.0",
     "@vitejs/plugin-react": "^5.1.4",
     "framer-motion": "^12.34.3",
