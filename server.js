@@ -11,6 +11,9 @@ const PORT = process.env.PORT || 3000;
 const USERS = JSON.parse(process.env.USERS || '{}');
 const SESSION_SECRET = process.env.SESSION_SECRET || 'change-me-in-production';
 
+// Trust Railway's reverse proxy for HTTPS detection
+app.set('trust proxy', 1);
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(session({
@@ -18,7 +21,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: { 
-    secure: process.env.NODE_ENV === 'production',
+    secure: 'auto', // auto-detects HTTPS via trust proxy
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   }
 }));
@@ -103,14 +106,24 @@ app.get('/login', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  const stored = USERS[username?.toLowerCase()];
-  if (stored && stored === password) {
-    req.session.authenticated = true;
-    req.session.username = username;
-    res.redirect('/');
-  } else {
-    res.send(loginPage('Invalid username or password.'));
+  try {
+    const { username, password } = req.body;
+    console.log(`Login attempt: ${username}`);
+    const stored = USERS[username?.toLowerCase().trim()];
+    if (stored && stored === password.trim()) {
+      req.session.authenticated = true;
+      req.session.username = username;
+      req.session.save((err) => {
+        if (err) { console.error('Session save error:', err); return res.send(loginPage('Session error, please try again.')); }
+        res.redirect('/');
+      });
+    } else {
+      console.log(`Login failed for: ${username}`);
+      res.send(loginPage('Invalid username or password.'));
+    }
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).send('Login error');
   }
 });
 
