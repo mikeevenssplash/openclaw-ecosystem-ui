@@ -123,7 +123,7 @@ app.post('/logout', (req, res) => {
 app.use(requireAuth, express.static(path.join(__dirname, 'dist')));
 
 // SPA fallback
-app.get('*', requireAuth, (req, res) => {
+app.get('/{*path}', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
